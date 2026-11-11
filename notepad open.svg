@@ -1,0 +1,25 @@
+<svg width="1258" height="2082" viewBox="0 0 1258 2082" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1158 116C1213.23 116 1258 160.772 1258 216V1982C1258 2037.23 1213.23 2082 1158 2082H100C44.7715 2082 3.50362e-07 2037.23 0 1982V216C0 160.772 44.7715 116 100 116H1158ZM128 279H205V202H128V279ZM282 279H359V202H282V279ZM436 279H513V202H436V279ZM590 279H667V202H590V279ZM744 279H821V202H744V279ZM898 279H975V202H898V279ZM1052 202V279H1129V202H1052Z" fill="#FFFBED"/>
+<g opacity="0.5">
+<line x1="123.5" y1="472.5" x2="1133.5" y2="472.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="590.5" x2="1133.5" y2="590.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="708.5" x2="1133.5" y2="708.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="826.5" x2="1133.5" y2="826.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="944.5" x2="1133.5" y2="944.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="1062.5" x2="1133.5" y2="1062.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="1180.5" x2="1133.5" y2="1180.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="1298.5" x2="1133.5" y2="1298.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="1416.5" x2="1133.5" y2="1416.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="1534.5" x2="1133.5" y2="1534.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="1652.5" x2="1133.5" y2="1652.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="1770.5" x2="1133.5" y2="1770.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="1888.5" x2="1133.5" y2="1888.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+</g>
+<rect x="144.5" y="7.5" width="43" height="216" stroke-width="13" stroke="#0015B4"/>
+<rect x="298.5" y="8.5" width="43" height="216" stroke-width="13" stroke="#0015B4"/>
+<rect x="452.5" y="8.5" width="43" height="216" stroke-width="13" stroke="#0015B4"/>
+<rect x="606.5" y="6.5" width="43" height="216" stroke-width="13" stroke="#0015B4"/>
+<rect x="760.5" y="7.5" width="43" height="216" stroke-width="13" stroke="#0015B4"/>
+<rect x="914.5" y="7.5" width="43" height="216" stroke-width="13" stroke="#0015B4"/>
+<rect x="1068.5" y="8.5" width="43" height="216" stroke-width="13" stroke="#0015B4"/>
+</svg>

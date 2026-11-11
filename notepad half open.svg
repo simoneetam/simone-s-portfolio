@@ -1,0 +1,26 @@
+<svg width="1258" height="3933" viewBox="0 0 1258 3933" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1158 1967C1213.23 1967 1258 2011.77 1258 2067V3833C1258 3888.23 1213.23 3933 1158 3933H100C44.7715 3933 3.50362e-07 3888.23 0 3833V2067C0 2011.77 44.7715 1967 100 1967H1158ZM128 2130H205V2053H128V2130ZM282 2130H359V2053H282V2130ZM436 2130H513V2053H436V2130ZM590 2130H667V2053H590V2130ZM744 2130H821V2053H744V2130ZM898 2130H975V2053H898V2130ZM1052 2053V2130H1129V2053H1052Z" fill="#FFFBED"/>
+<g opacity="0.5">
+<line x1="123.5" y1="2323.5" x2="1133.5" y2="2323.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="2441.5" x2="1133.5" y2="2441.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="2559.5" x2="1133.5" y2="2559.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="2677.5" x2="1133.5" y2="2677.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="2795.5" x2="1133.5" y2="2795.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="2913.5" x2="1133.5" y2="2913.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="3031.5" x2="1133.5" y2="3031.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="3149.5" x2="1133.5" y2="3149.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="3267.5" x2="1133.5" y2="3267.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="3385.5" x2="1133.5" y2="3385.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="3503.5" x2="1133.5" y2="3503.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="3621.5" x2="1133.5" y2="3621.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+<line x1="123.5" y1="3739.5" x2="1133.5" y2="3739.5" stroke-width="3" stroke-linecap="round" stroke="#974A06"/>
+</g>
+<path d="M1158 1966C1213.23 1966 1258 1921.23 1258 1866V100C1258 44.7715 1213.23 0 1158 0H100C44.7715 0 3.50362e-07 44.7715 0 100V1866C0 1921.23 44.7715 1966 100 1966H1158ZM128 1803H205V1880H128V1803ZM282 1803H359V1880H282V1803ZM436 1803H513V1880H436V1803ZM590 1803H667V1880H590V1803ZM744 1803H821V1880H744V1803ZM898 1803H975V1880H898V1803ZM1052 1880V1803H1129V1880H1052Z" fill="#B4FFF1"/>
+<rect x="144.5" y="1858.5" width="43" height="216" stroke-width="13" stroke="#0015B4"/>
+<rect x="298.5" y="1859.5" width="43" height="216" stroke-width="13" stroke="#0015B4"/>
+<rect x="452.5" y="1859.5" width="43" height="216" stroke-width="13" stroke="#0015B4"/>
+<rect x="606.5" y="1857.5" width="43" height="216" stroke-width="13" stroke="#0015B4"/>
+<rect x="760.5" y="1858.5" width="43" height="216" stroke-width="13" stroke="#0015B4"/>
+<rect x="914.5" y="1858.5" width="43" height="216" stroke-width="13" stroke="#0015B4"/>
+<rect x="1068.5" y="1859.5" width="43" height="216" stroke-width="13" stroke="#0015B4"/>
+</svg>

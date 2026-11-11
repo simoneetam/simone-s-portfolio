@@ -1,0 +1,33 @@
+<!-- Temporary mockup tiger paw, claws pointing right. Replace with final artwork
+     (keep the claw tips near the right edge and roughly at 22%, 50% and 78% height
+     so they line up with the scratch marks). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 400" width="260" height="400">
+  <!-- claws -->
+  <g fill="#FFF8EC" stroke="#3A2A1A" stroke-width="3" stroke-linejoin="round">
+    <path d="M196 76 Q235 80 256 92 Q232 100 196 106 Z"/>
+    <path d="M196 186 Q235 190 256 202 Q232 210 196 216 Z"/>
+    <path d="M196 296 Q235 300 256 312 Q232 320 196 326 Z"/>
+  </g>
+  <!-- palm -->
+  <ellipse cx="88" cy="200" rx="78" ry="118" fill="#F28C28" stroke="#3A2A1A" stroke-width="4"/>
+  <!-- stripes -->
+  <g fill="#3A2A1A">
+    <path d="M20 150 Q50 160 62 140 Q46 150 24 140 Z"/>
+    <path d="M14 205 Q48 212 66 196 Q46 202 16 194 Z"/>
+    <path d="M22 260 Q52 262 64 246 Q46 254 24 250 Z"/>
+  </g>
+  <!-- palm pad -->
+  <path d="M90 160 Q140 170 140 205 Q140 245 95 245 Q60 245 62 205 Q64 165 90 160 Z" fill="#C9605A"/>
+  <!-- toes -->
+  <g fill="#F28C28" stroke="#3A2A1A" stroke-width="4">
+    <circle cx="168" cy="91" r="34"/>
+    <circle cx="176" cy="201" r="36"/>
+    <circle cx="168" cy="311" r="34"/>
+  </g>
+  <!-- toe pads -->
+  <g fill="#C9605A">
+    <ellipse cx="176" cy="91" rx="16" ry="14"/>
+    <ellipse cx="184" cy="201" rx="17" ry="15"/>
+    <ellipse cx="176" cy="311" rx="16" ry="14"/>
+  </g>
+</svg>

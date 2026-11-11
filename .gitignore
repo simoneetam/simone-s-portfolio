@@ -1,0 +1,5 @@
+# original full-size video exports (the site uses the compressed copies in projects-media/)
+previews/
+
+# local editor / Claude settings
+.claude/

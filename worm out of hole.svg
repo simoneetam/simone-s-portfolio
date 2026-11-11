@@ -1,0 +1,34 @@
+<svg width="701" height="633" viewBox="0 0 701 633" fill="none" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="413.007" cy="84.5" rx="54.5" ry="84.5" fill="url(#paint0_radial_0_1)"/>
+<path d="M454.507 85C566.008 85 671.227 169.26 630.007 261.5C558.507 421.5 311.508 186.5 61.0071 571.5" stroke-width="122" stroke-linecap="round" stroke="#FF99BB"/>
+<circle cx="30.5071" cy="584" r="7" fill="#241100"/>
+<circle cx="61.5071" cy="577" r="7" fill="#241100"/>
+<path d="M52.5071 604C63.3404 601.5 73.2071 600.3 84.0071 589.5" stroke-width="10" stroke-linecap="round" stroke="#241100"/>
+<path d="M56.5622 501.684C74.4316 498.59 113.914 502.558 128.886 543.183" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M88.5622 458.684C106.432 455.59 145.914 459.558 160.886 500.183" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M126.621 419.656C144.654 417.732 183.794 424.264 196.089 465.778" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M164.588 381.568C182.719 381.967 220.702 393.45 227.586 436.196" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M212.682 350.334C230.334 354.494 265.099 373.624 262.946 416.867" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M257.616 326.181C274.832 331.883 307.773 354.007 301.811 396.89" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M315.123 306.621C329.781 317.301 354.408 348.415 335.655 387.439" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M365.584 297.607C378.967 309.846 399.992 343.499 377.027 380.203" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M414.156 288.075C426.902 300.975 446.197 335.649 421.405 371.144" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M459.877 287.252C472.624 300.152 491.919 334.826 467.126 370.321" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M506.886 283.536C520.247 295.798 541.212 329.489 518.181 366.152" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M542.836 279.938C558.973 288.212 588.132 315.127 575.664 356.589" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M578.043 263.41C595.907 266.533 631.73 283.601 632.105 326.895" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M594.567 234.704C612.068 229.948 651.748 230.196 670.465 269.238" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M595.357 201.744C610.139 191.238 647.465 177.772 678.51 207.951" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M585.246 171.555C595.099 156.33 624.806 130.022 664.806 146.591" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M562.903 151.454C566.227 133.626 583.699 97.9985 626.995 98.1131" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M532.137 138.492C531.012 120.391 539.266 81.5784 581.282 71.1287" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M498.328 129.209C492.735 111.958 491.072 72.312 529.167 51.7371" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M464.608 125.379C455.985 109.424 447.176 70.7337 480.919 43.6048" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<path d="M430.231 123.774C421.608 107.82 412.798 69.1288 446.541 42" stroke-width="10" stroke-linecap="round" stroke="#FFB4CD"/>
+<defs>
+<radialGradient id="paint0_radial_0_1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(413.007 84.5) rotate(90) scale(84.5 54.5)">
+<stop/>
+<stop offset="1" stop-color="#4B2300"/>
+</radialGradient>
+</defs>
+</svg>
