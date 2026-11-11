@@ -243,6 +243,16 @@
       pointer-events: none;
     }
 
+    .contact-stickers img.is-draggable {
+      pointer-events: auto;
+      cursor: var(--cursor-click);
+      touch-action: none;
+    }
+
+    .contact-stickers img.is-dragging {
+      filter: saturate(1.3) drop-shadow(0 8px 14px rgba(0, 40, 120, 0.25));
+    }
+
     .contact-stickers img {
       position: absolute;
       display: block;
@@ -855,8 +865,8 @@
       .projects .pear     { left: calc(2 * var(--u));  top: calc(var(--pt) + 14 * var(--u)); width: calc(24 * var(--u)); }
       .projects .orange   { left: calc(27 * var(--u)); top: calc(var(--pt) + 11 * var(--u)); width: calc(24 * var(--u)); }
       .projects .blueberry-1 { left: calc(47 * var(--u)); top: calc(var(--pt) + 3 * var(--u));  width: calc(9 * var(--u)); }
-      .projects .blueberry-2 { left: calc(28 * var(--u)); top: calc(var(--pt) + 37 * var(--u)); width: calc(8 * var(--u)); }
-      .projects .strawberry  { left: calc(40 * var(--u)); top: calc(var(--pt) + 34 * var(--u)); width: calc(11 * var(--u)); }
+      .projects .blueberry-2 { left: calc(31 * var(--u)); top: calc(var(--pt) + 37 * var(--u)); width: calc(8 * var(--u)); }
+      .projects .strawberry  { left: calc(43 * var(--u)); top: calc(var(--pt) + 34 * var(--u)); width: calc(11 * var(--u)); }
       .notepad            { left: calc(13 * var(--u)); top: calc(var(--pt) + 56 * var(--u)); width: calc(36 * var(--u)); }
 
       /* contact: the printer (with its receipt) fills most of the width */
@@ -1682,9 +1692,19 @@
         const navBottom = (20 + 42.5) * k;                       // bottom of the nav buttons
         const D = Math.max(navBottom + 14 + rTop, Math.min(W, H) * 0.08);
         const toStage = (x, y) => [(x - ox) / s, (y - oyFinal) / s];
-        const [tx, ty] = toStage(W - D, D), [bx, by] = toStage(W - D, H - D);
-        placeStar(stickers.starTop, STAR_TOP, tx, ty, 8);
-        placeStar(stickers.starBottom, STAR_BOTTOM, bx, by, -6);
+        if (phone) {
+          // phones: the top one just off the apple's upper right (with a little space), the bottom
+          // one straight below it, its bottom level with the bottom of the blue box
+          const GAP = 40, ang = -45 * DEG, dist = R + GAP + STAR_TOP / 2;
+          const px = restCx + dist * Math.cos(ang), py = restCy + dist * Math.sin(ang);
+          placeStar(stickers.starTop, STAR_TOP, px, py, 8);
+          const cardBottom = scene.t + (cardBelow + about.offsetHeight) / s;
+          placeStar(stickers.starBottom, STAR_BOTTOM, px, cardBottom - STAR_BOTTOM / 2, -6);
+        } else {
+          const [tx, ty] = toStage(W - D, D), [bx, by] = toStage(W - D, H - D);
+          placeStar(stickers.starTop, STAR_TOP, tx, ty, 8);
+          placeStar(stickers.starBottom, STAR_BOTTOM, bx, by, -6);
+        }
       }
       for (const cv of [backCanvas, canvas]) {
         cv.width = Math.round(W * dpr);
@@ -2197,9 +2217,14 @@
     const cardH = i => cards[order[i]].el.offsetHeight + gap();
     const total = () => cards.reduce((t, c) => t + c.el.offsetHeight + gap(), 0);
 
+    // touch screens: no endless loop (moving posts around mid-swipe makes phones jump);
+    // the list just scrolls, and hands the scroll back to the page at its ends
+    const LOOP = !matchMedia('(pointer: coarse)').matches;
+    if (!LOOP) list.style.overscrollBehavior = 'auto';
+
     function update() {
       if (!cards[0].el.offsetHeight) return;
-      for (let k = 0; k < 20; k++) {
+      for (let k = 0; LOOP && k < 20; k++) {
         if (list.scrollTop > cardH(0) + cardH(1)) {          // well past the top post: move it to the bottom
           const h = cardH(0);
           order.push(order.shift());
@@ -2220,6 +2245,7 @@
     function toStart() {
       if (!cards[0].el.offsetHeight) return;
       order = cards.map((_, i) => i);
+      if (!LOOP) { applyOrder(); shift = 0; list.scrollTop = 0; update(); return; }
       order.unshift(order.pop());           // the last post waits just above the first one
       applyOrder();
       shift = -cardH(0);
@@ -2670,23 +2696,36 @@
       // place items so they read upright at (sx, sy) on the turned receipt, at scale sc
       const placeAt = (els, b, sx, sy, sc = 1) => els.forEach(el => el.setAttribute('transform',
         `matrix(0 ${-sc} ${sc} 0 ${sy - sc * b.y} ${1011 - sx + sc * b.x})`));
-      const L = 298, R = 714;                                        // the receipt's margins (across)
-      let y = 560;                                                   // below the printer, mostly
-      const hb = box(heading);
-      placeAt(heading.map(w => w.el), hb, L, y);
-      if (star.length) { const sb = box(star); placeAt(star.map(w => w.el), sb, R - sb.w, y + (hb.h - sb.h) / 2); }
-      y += hb.h + 36;
-      // the five links, one per line, each with its clickable area and underline
+      const BAR = 2.5;                                               // barcode size (x the original)
       const links = [...paper.querySelectorAll('.rp-link')];
       const lines = [...left, ...right];                              // email, linkedin, resume, instagram, github
-      for (const w of lines) {
+      const lineBox = lines.map(w => {
         const link = links.find(a => {
           const r = a.querySelector('rect').getBBox();
           return Math.abs(r.x + r.width / 2 - w.cx) < r.width / 2 + 10 && Math.abs(r.y + r.height / 2 - w.cy) < 30;
         });
-        const b = link ? box([w, { b: link.querySelector('rect').getBBox() }]) : w.b;
-        placeAt(link ? [w.el, link] : [w.el], b, L, y);
-        y += 52;
+        return { w, link, b: link ? box([w, { b: link.querySelector('rect').getBBox() }]) : w.b };
+      });
+      const hb = box(heading), sb = star.length ? box(star) : { w: 0, h: 0 };
+      const nb = box(note), bb = box(barcode);
+      // everything shares one scale so the widest line fits with equal space either side
+      const PAPER_L = 262, PAPER_R = 750, MAX_W = 432;
+      const widest = Math.max(hb.w + 40 + sb.w, ...lineBox.map(o => o.b.w), bb.w * BAR);
+      const g = Math.min(1, MAX_W / widest);
+      const contentW = widest * g;
+      const L = (PAPER_L + PAPER_R) / 2 - contentW / 2, R = L + contentW;
+      const nsc = Math.min(g, contentW / nb.w);
+      const PITCH = 52 * g;
+      const contentH = hb.h * g + 36 * g + PITCH * lineBox.length + 6 + 30 + nb.h * nsc + 34 + bb.h * BAR * g;
+      // the paper runs from the slot (274) to `end`; the text sits in the middle of it
+      const end = Math.max(1150, 274 + contentH + 160);
+      let y = 274 + (end - 274 - contentH) / 2;
+      placeAt(heading.map(w => w.el), hb, L, y, g);
+      if (star.length) placeAt(star.map(w => w.el), sb, R - sb.w * g, y + (hb.h - sb.h) * g / 2, g);
+      y += hb.h * g + 36 * g;
+      for (const o of lineBox) {
+        placeAt(o.link ? [o.w.el, o.link] : [o.w.el], o.b, L, y, g);
+        y += PITCH;
       }
       // the dividing line
       print.querySelector('line').remove();
@@ -2696,30 +2735,59 @@
         .forEach(([k, v]) => rule.setAttribute(k, v));
       print.appendChild(rule);
       y += 30;
-      // the note, shrunk to fit the narrower receipt, then the barcode
-      const nb = box(note), nsc = Math.min(1, (R - L) / nb.w);
+      // the note, then the (bigger) barcode, centred
       placeAt(note.map(w => w.el), nb, L, y, nsc);
       y += nb.h * nsc + 34;
-      const bb = box(barcode);
-      placeAt(barcode.map(w => w.el), bb, (L + R) / 2 - bb.w / 2, y);
-      y += bb.h + 60;
+      placeAt(barcode.map(w => w.el), bb, (L + R) / 2 - bb.w * BAR * g / 2, y, BAR * g);
       // shorten the paper to end just after the barcode (keeping its torn edge)
-      const end = Math.max(y, 1150);
       paper.querySelector('path').setAttribute('transform', `translate(274 0) scale(${(end - 274) / (1355 - 274)} 1) translate(-274 0)`);
       LENGTH = end - 274;
       svg.setAttribute('viewBox', `0 0 1011 ${end}`);
       svg.classList.add('is-vertical');
       svg.dataset.paperEnd = end;
       // size and centre it in the section
-      const place = () => {
-        const h = Math.min(innerHeight * 0.84, innerWidth * 0.86 * end / 1011), w = h * 1011 / end;
-        Object.assign(svg.style, { width: w + 'px', height: h + 'px',
-          left: (contactSec.clientWidth - w) / 2 + 'px', top: (innerHeight - h) / 2 + 'px' });
-      };
       const contactSec = document.getElementById('contact');
+      const place = () => {
+        const SH = contactSec.clientHeight;
+        const h = Math.min(SH * 0.84, innerWidth * 0.86 * end / 1011), w = h * 1011 / end;
+        Object.assign(svg.style, { width: w + 'px', height: h + 'px',
+          left: (contactSec.clientWidth - w) / 2 + 'px', top: (SH - h) / 2 + 'px' });
+      };
       place();
-      addEventListener('resize', place);
+      let lastW = innerWidth;
+      addEventListener('resize', () => { if (innerWidth !== lastW) { lastW = innerWidth; place(); } });
     }
+    if (!VERTICAL) {
+      const print = paper.querySelector('.rp-print');
+      const words = [...print.querySelectorAll('path')].map(el => ({ el, b: el.getBBox() }));
+      const isBar = w => w.b.y + w.b.height / 2 >= 590 && w.b.x + w.b.width / 2 >= 1000;
+      const isNote = w => w.b.y + w.b.height / 2 >= 590 && w.b.x + w.b.width / 2 < 1000;
+      const bars = words.filter(isBar), note = words.filter(isNote);
+      const span = list => ({
+        x0: Math.min(...list.map(w => w.b.x)), y0: Math.min(...list.map(w => w.b.y)),
+        x1: Math.max(...list.map(w => w.b.x + w.b.width)), y1: Math.max(...list.map(w => w.b.y + w.b.height)),
+      });
+      if (bars.length) {
+        // barcode 2.5x, kept to the right edge and just under the line
+        const B = span(bars), BAR = 2.5, top = 600;
+        bars.forEach(w => w.el.setAttribute('transform',
+          `translate(${B.x1 - BAR * B.x1} ${top - BAR * B.y0}) scale(${BAR})`));
+        const barLeft = B.x1 - BAR * (B.x1 - B.x0);
+        // the note shrinks a little if it would run into the barcode
+        if (note.length) {
+          const N = span(note), room = barLeft - 28 - N.x0;
+          const k = Math.min(1, room / (N.x1 - N.x0));
+          note.forEach(w => w.el.setAttribute('transform', `translate(${N.x0 * (1 - k)} ${N.y0 * (1 - k)}) scale(${k})`));
+        }
+      }
+      // shift all the printing (and its links) so the space either side is the same
+      const PAPER_L = 274, PAPER_R = 1346;                            // to the middle of the torn edge
+      const all = print.getBBox();
+      const dx = (PAPER_L + PAPER_R) / 2 - (all.x + all.width / 2);
+      print.setAttribute('transform', `translate(${dx} 0)`);
+      paper.querySelectorAll('.rp-link').forEach(a => a.setAttribute('transform', `translate(${dx} 0)`));
+    }
+
     // switching between the phone and laptop layouts (e.g. rotating a tablet): start fresh
     matchMedia('(max-width: 760px) and (orientation: portrait)').addEventListener('change', () => location.reload());
 
@@ -2813,7 +2881,11 @@
     const layer = contact.querySelector('.contact-stickers');
     const printer = contact.querySelector('.receipt-printer');
     const nav = document.querySelector('.nav');
-    const seed = (Math.random() * 2 ** 32) >>> 0;     // same layout on resize, new one each visit
+    const PHONE = matchMedia('(max-width: 760px) and (orientation: portrait)').matches;
+    // laptops: a new layout each visit; phones: always the same layout
+    const seed = PHONE ? 20261111 : (Math.random() * 2 ** 32) >>> 0;
+    const DRAG = matchMedia('(hover: hover) and (pointer: fine)').matches;   // mouse: stickers can be moved
+    let keepClear = [], bounds = null;
 
     function rng(a) {                                  // small seeded random generator
       return () => {
@@ -2828,7 +2900,7 @@
       const S = STICKER_SETTINGS;
       const rand = rng(seed);
       const u = (matchMedia('(max-width: 760px) and (orientation: portrait)').matches ? innerWidth / 62 : Math.min(innerWidth / 123.6, innerHeight / 62.5));
-      const W = contact.clientWidth, H = innerHeight;    // the section is one screen tall
+      const W = contact.clientWidth, H = contact.clientHeight;   // the section is one screen tall
       const M = S.margin * u, pad = S.clearance * u;
 
       // areas to keep clear, in section coordinates
@@ -2841,7 +2913,7 @@
         r: pr.left - sec.left + x1 * k + pad, b: pr.top - sec.top + y1 * k + pad,
       });
       const nr = nav.getBoundingClientRect();
-      const keepClear = [
+      keepClear = [
         ...(vertical
           ? [art(0, 0, 1011, 909), art(262, 274, 750, +printer.dataset.paperEnd)]   // upright printer, receipt below
           : [art(0, 0, 909, 1011), art(274, 261, 1355, 749)]),                       // printer, receipt to the right
@@ -2860,6 +2932,7 @@
         return { name, sw, sh, tilt, bw, bh, r: (sw + sh) / 4, key: rand() * (sw * sh) };
       }).sort((a, b) => b.key - a.key);
 
+      bounds = { W, H, M };
       const fits = (x, y, it) => {
         const l = x - it.bw / 2, r = x + it.bw / 2, t = y - it.bh / 2, b = y + it.bh / 2;
         if (l < M || t < M || r > W - M || b > H - M) return false;
@@ -2896,13 +2969,56 @@
           left: p.x - p.sw / 2 + 'px', top: p.y - p.sh / 2 + 'px',
           transform: `rotate(${p.tilt}rad)`,
         });
+        if (DRAG) { img.className = 'is-draggable'; img._s = p; img.addEventListener('pointerdown', drag); }
         return img;
       }));
     }
 
+    // drag a sticker around (mouse only). It can overlap other stickers but never the printer,
+    // its receipt or the nav buttons, and it stays inside the section's margins.
+    let topZ = 1;
+    function drag(e) {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      const img = e.currentTarget, p = img._s;
+      img.setPointerCapture(e.pointerId);
+      img.style.zIndex = ++topZ;
+      img.classList.add('is-dragging');
+      const sx = e.clientX - p.x, sy = e.clientY - p.y;
+      const ok = (x, y) => {
+        const l = x - p.bw / 2, r = x + p.bw / 2, t = y - p.bh / 2, b = y + p.bh / 2;
+        if (l < bounds.M || t < bounds.M || r > bounds.W - bounds.M || b > bounds.H - bounds.M) return false;
+        return !keepClear.some(z => l < z.r && r > z.l && t < z.b && b > z.t);
+      };
+      const move = ev => {
+        const x = ev.clientX - sx, y = ev.clientY - sy;
+        // slide along whatever it's pressed against rather than sticking
+        if (ok(x, y)) { p.x = x; p.y = y; }
+        else if (ok(x, p.y)) p.x = x;
+        else if (ok(p.x, y)) p.y = y;
+        img.style.left = p.x - p.sw / 2 + 'px';
+        img.style.top = p.y - p.sh / 2 + 'px';
+      };
+      const up = () => {
+        img.classList.remove('is-dragging');
+        img.removeEventListener('pointermove', move);
+        img.removeEventListener('pointerup', up);
+        img.removeEventListener('pointercancel', up);
+      };
+      img.addEventListener('pointermove', move);
+      img.addEventListener('pointerup', up);
+      img.addEventListener('pointercancel', up);
+    }
+
     place();
-    let timer = 0;
-    addEventListener('resize', () => { clearTimeout(timer); timer = setTimeout(place, 250); });
+    // re-arrange only when the width changes (phones change height as the address bar hides)
+    let timer = 0, lastW = innerWidth;
+    addEventListener('resize', () => {
+      if (innerWidth === lastW) return;
+      lastW = innerWidth;
+      clearTimeout(timer);
+      timer = setTimeout(place, 250);
+    });
   })();
   </script>
 </body>
