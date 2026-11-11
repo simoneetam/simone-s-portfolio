@@ -2837,7 +2837,7 @@
       const contentW = widest * g;
       const L = (PAPER_L + PAPER_R) / 2 - contentW / 2, R = L + contentW;
       note.forEach(w => w.el.remove());
-      const noteText = makeNote(contentW, NOTE_SIZE * 1.125 * g);
+      const noteText = makeNote(contentW, NOTE_SIZE * 0.84375 * g);
       print.appendChild(noteText.el);
       const PITCH = 52 * g;
       const contentH = hb.h * g + 36 * g + PITCH * lineBox.length + 6 + 30 + noteText.height + 34 + bb.h * BAR * g;
