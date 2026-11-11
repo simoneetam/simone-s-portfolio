@@ -1685,25 +1685,16 @@
         const column = Math.max((scene.b - scene.t) * s, cardBelow + about.offsetHeight + hintSize * 2.2);
         oyFinal = Math.max(PHONE_PAD + 50, (H - column) / 2) - scene.t * s;
       }
-      // sparkles, placed in the window (final layout): both the same distance in from the right
-      // edge, the top one that far down from the top, the bottom one that far up from the bottom
+      // phones: sparkles re-placed — the top one just off the apple's upper right (with a little
+      // space), the bottom one straight below it, its bottom level with the bottom of the blue box
+      // (laptops keep the original spots set above)
       {
-        const rTop = STAR_TOP / 2 * s, rBot = STAR_BOTTOM / 2 * s;
-        const navBottom = (20 + 42.5) * k;                       // bottom of the nav buttons
-        const D = Math.max(navBottom + 14 + rTop, Math.min(W, H) * 0.08);
-        const toStage = (x, y) => [(x - ox) / s, (y - oyFinal) / s];
         if (phone) {
-          // phones: the top one just off the apple's upper right (with a little space), the bottom
-          // one straight below it, its bottom level with the bottom of the blue box
           const GAP = 40, ang = -45 * DEG, dist = R + GAP + STAR_TOP / 2;
           const px = restCx + dist * Math.cos(ang) + 45, py = restCy + dist * Math.sin(ang);   // +45: nudged right
           placeStar(stickers.starTop, STAR_TOP, px, py, 8);
           const cardBottom = scene.t + (cardBelow + about.offsetHeight) / s;
           placeStar(stickers.starBottom, STAR_BOTTOM, px, cardBottom - STAR_BOTTOM / 2, -6);
-        } else {
-          const [tx, ty] = toStage(W - D, D), [bx, by] = toStage(W - D, H - D);
-          placeStar(stickers.starTop, STAR_TOP, tx, ty, 8);
-          placeStar(stickers.starBottom, STAR_BOTTOM, bx, by, -6);
         }
       }
       for (const cv of [backCanvas, canvas]) {
@@ -2748,7 +2739,7 @@
       const contentW = widest * g;
       const L = (PAPER_L + PAPER_R) / 2 - contentW / 2, R = L + contentW;
       note.forEach(w => w.el.remove());
-      const noteText = makeNote(contentW, NOTE_SIZE * g);
+      const noteText = makeNote(contentW, NOTE_SIZE * 0.75 * g);
       print.appendChild(noteText.el);
       const PITCH = 52 * g;
       const contentH = hb.h * g + 36 * g + PITCH * lineBox.length + 6 + 30 + noteText.height + 34 + bb.h * BAR * g;
@@ -2792,42 +2783,6 @@
       let lastW = innerWidth;
       addEventListener('resize', () => { if (innerWidth !== lastW) { lastW = innerWidth; place(); } });
     }
-    if (!VERTICAL) {
-      const print = paper.querySelector('.rp-print');
-      const words = [...print.querySelectorAll('path')].map(el => ({ el, b: el.getBBox() }));
-      const isBar = w => w.b.y + w.b.height / 2 >= 590 && w.b.x + w.b.width / 2 >= 1000;
-      const isNote = w => w.b.y + w.b.height / 2 >= 590 && w.b.x + w.b.width / 2 < 1000;
-      const bars = words.filter(isBar), note = words.filter(isNote);
-      const span = list => ({
-        x0: Math.min(...list.map(w => w.b.x)), y0: Math.min(...list.map(w => w.b.y)),
-        x1: Math.max(...list.map(w => w.b.x + w.b.width)), y1: Math.max(...list.map(w => w.b.y + w.b.height)),
-      });
-      if (bars.length) {
-        // barcode 2.5x, kept to the right edge and just under the line
-        const B = span(bars), BAR = 1.25, top = 604;
-        bars.forEach(w => w.el.setAttribute('transform',
-          `translate(${B.x1 - BAR * B.x1} ${top - BAR * B.y0}) scale(${BAR})`));
-        const barLeft = B.x1 - BAR * (B.x1 - B.x0);
-        // the note shrinks a little if it would run into the barcode
-        if (note.length) {
-          // the note fills the space left of the barcode, down to the bottom of the paper,
-          // at twice its old size (a little less if it wouldn't fit)
-          const N = span(note), room = barLeft - 32 - N.x0, top = 602, bottom = 740;
-          note.forEach(w => w.el.remove());
-          let size = NOTE_SIZE, made;
-          while ((made = makeNote(room, size)).height > bottom - top && size > 12) size -= 1;
-          made.el.setAttribute('transform', `translate(${N.x0} ${top})`);
-          print.appendChild(made.el);
-        }
-      }
-      // shift all the printing (and its links) so the space either side is the same
-      const PAPER_L = 274, PAPER_R = 1346;                            // to the middle of the torn edge
-      const all = print.getBBox();
-      const dx = (PAPER_L + PAPER_R) / 2 - (all.x + all.width / 2);
-      print.setAttribute('transform', `translate(${dx} 0)`);
-      paper.querySelectorAll('.rp-link').forEach(a => a.setAttribute('transform', `translate(${dx} 0)`));
-    }
-
     // switching between the phone and laptop layouts (e.g. rotating a tablet): start fresh
     matchMedia('(max-width: 760px) and (orientation: portrait)').addEventListener('change', () => location.reload());
 
