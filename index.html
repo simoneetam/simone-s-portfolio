@@ -1765,6 +1765,7 @@
           const cardRight = BAND.x + BAND.w, GAP_W = 14;
           let pw = (cardBottom - holeY) * 0.97 / (950 - 30);
           pw = Math.min(pw, (holeX - cardRight - GAP_W) / (255 - 18));   // keep the flower clear of the card
+          pw *= 0.9;                                                      // a little smaller (hole, worm and flower)
           Object.assign(wormPhone.style, {
             left: holeX - 255 * pw + 'px', top: holeY - 30 * pw + 'px', width: 400 * pw + 'px', height: 1000 * pw + 'px',
           });
