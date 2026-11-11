@@ -240,6 +240,8 @@
     .contact-stickers {
       position: absolute;
       inset: 0;
+      z-index: 1;                  /* above the printer, so every sticker can be picked up */
+      isolation: isolate;          /* a dragged sticker stays under the nav buttons */
       pointer-events: none;
     }
 
@@ -251,6 +253,10 @@
 
     .contact-stickers img.is-dragging {
       filter: saturate(1.3) drop-shadow(0 8px 14px rgba(0, 40, 120, 0.25));
+    }
+
+    .contact-stickers img.is-settling {
+      transition: left 0.3s cubic-bezier(0.2, 0.8, 0.3, 1), top 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
     }
 
     .contact-stickers img {
@@ -2720,7 +2726,7 @@
       // place items so they read upright at (sx, sy) on the turned receipt, at scale sc
       const placeAt = (els, b, sx, sy, sc = 1) => els.forEach(el => el.setAttribute('transform',
         `matrix(0 ${-sc} ${sc} 0 ${sy - sc * b.y} ${1011 - sx + sc * b.x})`));
-      const BAR = 1.25;                                              // barcode size (x the original)
+      const BAR = 0.9375;                                            // barcode size (x the original)
       const links = [...paper.querySelectorAll('.rp-link')];
       const lines = [...left, ...right];                              // email, linkedin, resume, instagram, github
       const lineBox = lines.map(w => {
@@ -2739,7 +2745,7 @@
       const contentW = widest * g;
       const L = (PAPER_L + PAPER_R) / 2 - contentW / 2, R = L + contentW;
       note.forEach(w => w.el.remove());
-      const noteText = makeNote(contentW, NOTE_SIZE * 0.75 * g);
+      const noteText = makeNote(contentW, NOTE_SIZE * 1.125 * g);
       print.appendChild(noteText.el);
       const PITCH = 52 * g;
       const contentH = hb.h * g + 36 * g + PITCH * lineBox.length + 6 + 30 + noteText.height + 34 + bb.h * BAR * g;
@@ -2969,8 +2975,10 @@
       }));
     }
 
-    // drag a sticker around (mouse only). It can overlap other stickers but never the printer,
-    // its receipt or the nav buttons, and it stays inside the section's margins.
+    // drag a sticker around (mouse only). While held it follows the mouse anywhere in the section
+    // (passing over the printer, so it can go from one side to the other). Let go on the printer,
+    // its receipt or the nav buttons and it glides to the nearest clear spot. It can overlap
+    // other stickers.
     let topZ = 1;
     function drag(e) {
       if (e.button !== 0) return;
@@ -2978,6 +2986,7 @@
       const img = e.currentTarget, p = img._s;
       img.setPointerCapture(e.pointerId);
       img.style.zIndex = ++topZ;
+      img.classList.remove('is-settling');
       img.classList.add('is-dragging');
       const sx = e.clientX - p.x, sy = e.clientY - p.y;
       const ok = (x, y) => {
@@ -2985,17 +2994,41 @@
         if (l < bounds.M || t < bounds.M || r > bounds.W - bounds.M || b > bounds.H - bounds.M) return false;
         return !keepClear.some(z => l < z.r && r > z.l && t < z.b && b > z.t);
       };
-      const move = ev => {
-        const x = ev.clientX - sx, y = ev.clientY - sy;
-        // slide along whatever it's pressed against rather than sticking
-        if (ok(x, y)) { p.x = x; p.y = y; }
-        else if (ok(x, p.y)) p.x = x;
-        else if (ok(p.x, y)) p.y = y;
+      const { W, H, M } = bounds;
+      const clampX = x => Math.min(W - M - p.bw / 2, Math.max(M + p.bw / 2, x));
+      const clampY = y => Math.min(H - M - p.bh / 2, Math.max(M + p.bh / 2, y));
+      const put = () => {
         img.style.left = p.x - p.sw / 2 + 'px';
         img.style.top = p.y - p.sh / 2 + 'px';
       };
+      const move = ev => {
+        p.x = clampX(ev.clientX - sx);
+        p.y = clampY(ev.clientY - sy);
+        put();
+      };
+      // nearest clear spot: search outward in rings around where it was dropped
+      const settle = () => {
+        if (ok(p.x, p.y)) return;
+        for (let rad = 6; rad < W + H; rad += 6) {
+          let best = null, bestD = Infinity;
+          const steps = Math.max(16, Math.round(rad / 4));
+          for (let i = 0; i < steps; i++) {
+            const a = i / steps * Math.PI * 2;
+            const x = clampX(p.x + rad * Math.cos(a)), y = clampY(p.y + rad * Math.sin(a));
+            const d = Math.hypot(x - p.x, y - p.y);
+            if (d < bestD && ok(x, y)) { best = { x, y }; bestD = d; }
+          }
+          if (best) {
+            p.x = best.x; p.y = best.y;
+            img.classList.add('is-settling');
+            put();
+            return;
+          }
+        }
+      };
       const up = () => {
         img.classList.remove('is-dragging');
+        settle();
         img.removeEventListener('pointermove', move);
         img.removeEventListener('pointerup', up);
         img.removeEventListener('pointercancel', up);
