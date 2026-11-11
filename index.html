@@ -835,6 +835,36 @@
       flex: none;
     }
 
+
+    /* ================= phones (narrow, upright screens) ================= */
+    @media (max-width: 760px) and (orientation: portrait) {
+      /* projects: heading, then the fruit, then the notepad, stacked down the screen.
+         1u = 1/62 of the screen width here. --pt centres the whole column. */
+      .projects {
+        --u: calc(100vw / 62);
+        --pt: max(calc(4 * var(--u)), calc(50vh - 59 * var(--u)));
+        min-height: max(100vh, calc(126 * var(--u)));
+      }
+      .projects-title     { left: calc(4 * var(--u));  top: var(--pt); }
+      .projects .pear     { left: calc(2 * var(--u));  top: calc(var(--pt) + 14 * var(--u)); width: calc(24 * var(--u)); }
+      .projects .orange   { left: calc(27 * var(--u)); top: calc(var(--pt) + 11 * var(--u)); width: calc(24 * var(--u)); }
+      .projects .blueberry-1 { left: calc(51 * var(--u)); top: calc(var(--pt) + 3 * var(--u));  width: calc(9 * var(--u)); }
+      .projects .blueberry-2 { left: calc(28 * var(--u)); top: calc(var(--pt) + 37 * var(--u)); width: calc(8 * var(--u)); }
+      .projects .strawberry  { left: calc(40 * var(--u)); top: calc(var(--pt) + 34 * var(--u)); width: calc(11 * var(--u)); }
+      .notepad            { left: calc(13 * var(--u)); top: calc(var(--pt) + 56 * var(--u)); width: calc(36 * var(--u)); }
+
+      /* contact: the printer (with its receipt) fills most of the width */
+      .contact { --u: calc(100vw / 62); }
+      .receipt-printer { --w: 58; }
+
+      /* game message: smaller so it fits a phone */
+      .cg-msg { font-size: 23px; padding: 12px 28px 13px; }
+      .cg-msg small { font-size: 11px; }
+      .cg-score { font-size: 13px; left: 10px; top: 10px; }
+    }
+
+    /* touch screens: fruit show their project on the first tap */
+    .fruit-link.is-revealed .fruit-hover { opacity: 1; }
   </style>
 </head>
 <body>
@@ -1192,6 +1222,9 @@
     const smoothstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 
     const stage = document.querySelector('.stage');
+    // phones (narrow, upright screens) get their own layout: the scene fills the width and the
+    // bio card sits below it at a readable size instead of being shrunk with the scene
+    const PHONE = matchMedia('(max-width: 760px) and (orientation: portrait)');
     const stageFront = document.querySelector('.stage-front');
     const wormSvg = document.querySelector('.worm');
     const hello = document.querySelector('.hello');
@@ -1464,8 +1497,15 @@
         aboutPhoto.style.width = textH * PHOTO_RATIO + 'px';
         return about.offsetWidth;
       };
-      let cardFs = 40;
-      for (let i = 0; i < 3; i++) cardFs *= BAND.w / sizeCard(cardFs);
+      const phone = PHONE.matches;
+      const heroEl = document.querySelector('.hero');
+      // on a phone the card and hint leave the scaled scene and sit in the page at normal size
+      const cardHome = phone ? heroEl : stage;
+      if (about.parentNode !== cardHome) { cardHome.appendChild(about); cardHome.appendChild(scrollHint); }
+      const PHONE_PAD = 16;
+      const cardTarget = phone ? (hero.clientWidth || innerWidth) - PHONE_PAD * 2 : BAND.w;
+      let cardFs = phone ? 16 : 40;
+      for (let i = 0; i < 3; i++) cardFs *= cardTarget / sizeCard(cardFs);
       sizeCard(cardFs);
       // lined up with the peel, just below its lowest point
       // (and below the resting apple too, if the card would reach under it)
@@ -1562,14 +1602,23 @@
       //  until it's resized)
       const W = hero.clientWidth || innerWidth || 1440, H = hero.clientHeight || innerHeight || 900;
       const fit = (w, h) => SIZE * Math.min(w / (box.r - box.l + 2 * MARGIN), h / (box.b - box.t + 2 * MARGIN));
-      const s = fit(W, H);
+      // the scene without the card (used on phones)
+      const scene = {
+        l: Math.min(BAND.x, CX0 - SPHERE.cx * K, left),
+        r: Math.max(BAND.x + BAND.w, CX_END + (APPLE_W - SPHERE.cx) * K, wormL + 740 * wS),
+        t: box.t,
+        b: Math.max(BAND.y + BAND_H, appleBottomY, flowerBottom),
+      };
+      const s = phone
+        ? Math.min((W - PHONE_PAD * 2) / (scene.r - scene.l), H * 0.5 / (scene.b - scene.t))
+        : fit(W, H);
 
       // nav buttons grow and shrink with the scene. In a fully opened (maximised) window they're
       // exactly their CSS size; smaller windows shrink them in step with everything else.
       const chromeW = Math.max(0, outerWidth - innerWidth), chromeH = Math.max(0, outerHeight - innerHeight);
       const fullW = (screen.availWidth || 1440) - chromeW, fullH = (screen.availHeight || 900) - chromeH;
       const sFull = fit(fullW, fullH);
-      const k = Math.min(1, s / sFull);
+      const k = phone ? 0.8 : Math.min(1, s / sFull);
       nav.style.transform = `scale(${k})`;
       nav.style.top = 20 * k + 'px';
       nav.style.right = 24 * k + 'px';
@@ -1578,16 +1627,24 @@
       // It's on the stage, so it grows and shrinks with the window; 0.8x the bio text size.
       const hintSize = 0.8 * parseFloat(getComputedStyle(aboutText).fontSize);
       scrollHint.style.fontSize = hintSize + 'px';
-      scrollHint.style.left = cardL + 'px';
+      scrollHint.style.left = (phone ? PHONE_PAD : cardL) + 'px';
       scrollHint.style.top = cardT + about.offsetHeight + hintSize * 0.9 + 'px';
+      if (phone) about.style.left = PHONE_PAD + 'px';
 
       const dpr = Math.min(2, devicePixelRatio || 1);
       const d = s * dpr;                           // device pixels per stage unit
-      const ox = W / 2 - (box.l + box.r) / 2 * s;
+      const ox = phone ? W / 2 - (scene.l + scene.r) / 2 * s : W / 2 - (box.l + box.r) / 2 * s;
       // two vertical positions, same size: while peeling, the heading/peel/apple are centred
       // on their own; once the bio card arrives everything glides up so the whole lot is centred
       const oyIntro = H / 2 - (box.t + heroBottom) / 2 * s;
-      const oyFinal = H / 2 - (box.t + box.b) / 2 * s;
+      let oyFinal = H / 2 - (box.t + box.b) / 2 * s;
+      // phone: scene, then the card 20px below it, then the hint; the whole column centred
+      const PHONE_GAP = 20;
+      const cardBelow = (scene.b - scene.t) * s + PHONE_GAP;               // card top, from the scene's top
+      if (phone) {
+        const column = cardBelow + about.offsetHeight + hintSize * 2.2;
+        oyFinal = Math.max(PHONE_PAD + 50, (H - column) / 2) - scene.t * s;
+      }
       for (const cv of [backCanvas, canvas]) {
         cv.width = Math.round(W * dpr);
         cv.height = Math.round(H * dpr);
@@ -1656,7 +1713,7 @@
       const actx = appleCanvas.getContext('2d');
       const appleImg = actx.createImageData(OW, OH);
 
-      L = { s, d, dpr, ox, oyIntro, oyFinal, band, peeler, top, OW, OH, alpha, lon0, row, light, shadeA, cavA, cav,
+      L = { phone, sceneTop: scene.t, cardBelow, hintGap: hintSize * 0.9, s, d, dpr, ox, oyIntro, oyFinal, band, peeler, top, OW, OH, alpha, lon0, row, light, shadeA, cavA, cav,
             appleCanvas, actx, appleImg, out: new Uint32Array(appleImg.data.buffer) };
     }
 
@@ -1717,6 +1774,11 @@
       const oy = L.oyIntro + (L.oyFinal - L.oyIntro) * ease(rise);   // see `rise` below
       stage.style.transform = `translate(${ox}px, ${oy}px) scale(${s})`;
       stageFront.style.transform = stage.style.transform;
+      if (L.phone) {                     // the card and hint ride along below the scene
+        const cardTop = oy + L.sceneTop * s + L.cardBelow;
+        about.style.top = cardTop + 'px';
+        scrollHint.style.top = cardTop + about.offsetHeight + L.hintGap + 'px';
+      }
       for (const c of [bctx, ctx]) {
         c.setTransform(1, 0, 0, 1, 0, 0);
         c.clearRect(0, 0, canvas.width, canvas.height);
@@ -1910,6 +1972,22 @@
     render(0);
     play();
   })().catch(err => console.error(err));
+  </script>
+
+  <script>
+  // Touch screens have no hover, so the first tap on a fruit shows its project description and
+  // the second tap opens the link.
+  if (matchMedia('(hover: none)').matches) {
+    const fruits = [...document.querySelectorAll('.fruit-link')];
+    fruits.forEach(a => a.addEventListener('click', e => {
+      if (a.classList.contains('is-revealed')) return;
+      e.preventDefault();
+      fruits.forEach(o => o.classList.toggle('is-revealed', o === a));
+    }));
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.fruit-link')) fruits.forEach(o => o.classList.remove('is-revealed'));
+    });
+  }
   </script>
 
   <script>
@@ -2133,7 +2211,7 @@
       cv.width = W * dpr; cv.height = H * dpr;
       const c = cv.getContext('2d');
       c.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const u = Math.min(innerWidth / 123.6, innerHeight / 62.5);
+      const u = (matchMedia('(max-width: 760px) and (orientation: portrait)').matches ? innerWidth / 62 : Math.min(innerWidth / 123.6, innerHeight / 62.5));
       const fs = ASCII.size * u, cw = fs * 0.6, ch = fs;
       c.font = `bold ${fs}px ui-monospace, Consolas, "Courier New", monospace`;
       c.fillStyle = ASCII.color;
@@ -2206,6 +2284,13 @@
     };
 
     const band = document.querySelector('.cat-game');
+    const PHONE = matchMedia('(max-width: 760px) and (orientation: portrait)').matches;
+    const TOUCH = matchMedia('(pointer: coarse)').matches;
+    const TXT = TOUCH
+      ? { start: '<span>tap to play</span><small>swipe to steer the caterpillar to the leaves!</small>',
+          again: 'tap to play again' }
+      : { start: '<span>press an arrow key</span><span>or click to play</span><small>help the caterpillar eat the leaves!</small>',
+          again: 'click or press an arrow key to play again' };
     const cv = band.querySelector('canvas');
     const ctx = cv.getContext('2d');
     const msg = band.querySelector('.cg-msg');
@@ -2230,7 +2315,7 @@
       const u = Math.min(innerWidth / 123.6, innerHeight / 62.5);
       const W = band.clientWidth;
       const target = Math.min(GAME.cell * u, innerHeight * 0.9 / GAME.rows);   // fits on screen
-      cols = Math.max(10, Math.round(W / target));
+      cols = PHONE ? 10 : Math.max(10, Math.round(W / target));   // phones: 10 squares across
       cell = W / cols;
       rows = GAME.rows;
       band.style.height = rows * cell + 'px';
@@ -2397,7 +2482,7 @@
       band.classList.remove('is-playing');
       draw(1);
       msg.hidden = false;
-      msg.innerHTML = `you ate ${score} ${score === 1 ? 'leaf' : 'leaves'}!<small>click or press an arrow key to play again</small>`;
+      msg.innerHTML = `you ate ${score} ${score === 1 ? 'leaf' : 'leaves'}!<small>${TXT.again}</small>`;
     }
 
     function win() {
@@ -2405,7 +2490,7 @@
       band.classList.remove('is-playing');
       draw(1);
       msg.hidden = false;
-      msg.innerHTML = '<span>congrats, you\u2019ve won!</span><small>click or press an arrow key to play again</small>';
+      msg.innerHTML = `<span>congrats, you\u2019ve won!</span><small>${TXT.again}</small>`;
       confetti();
     }
 
@@ -2473,10 +2558,11 @@
       const dx = e.changedTouches[0].clientX - touch[0], dy = e.changedTouches[0].clientY - touch[1];
       touch = null;
       if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
-      if (state !== 'playing') start();
+      if (state !== 'playing') return;                  // swiping past the board just scrolls the page
       turn(Math.abs(dx) > Math.abs(dy) ? [Math.sign(dx), 0] : [0, Math.sign(dy)]);
     });
 
+    msg.innerHTML = TXT.start;
     reset();
     layout();
 
@@ -2485,7 +2571,7 @@
     let rt = 0;
     addEventListener('resize', () => {
       clearTimeout(rt);
-      rt = setTimeout(() => { if (state === 'playing') gameOver(); state = 'idle'; msg.hidden = false; msg.innerHTML = '<span>press an arrow key</span><span>or click to play</span><small>help the caterpillar eat the leaves!</small>'; layout(); }, 200);
+      rt = setTimeout(() => { if (state === 'playing') gameOver(); state = 'idle'; msg.hidden = false; msg.innerHTML = TXT.start; layout(); }, 200);
     });
     [headClosed, headOpen, leaf].forEach(i => i.addEventListener('load', () => draw(1)));
   })();
@@ -2611,7 +2697,7 @@
     function place() {
       const S = STICKER_SETTINGS;
       const rand = rng(seed);
-      const u = Math.min(innerWidth / 123.6, innerHeight / 62.5);
+      const u = (matchMedia('(max-width: 760px) and (orientation: portrait)').matches ? innerWidth / 62 : Math.min(innerWidth / 123.6, innerHeight / 62.5));
       const W = contact.clientWidth, H = innerHeight;    // the section is one screen tall
       const M = S.margin * u, pad = S.clearance * u;
 
