@@ -1696,7 +1696,7 @@
           // phones: the top one just off the apple's upper right (with a little space), the bottom
           // one straight below it, its bottom level with the bottom of the blue box
           const GAP = 40, ang = -45 * DEG, dist = R + GAP + STAR_TOP / 2;
-          const px = restCx + dist * Math.cos(ang), py = restCy + dist * Math.sin(ang);
+          const px = restCx + dist * Math.cos(ang) + 45, py = restCy + dist * Math.sin(ang);   // +45: nudged right
           placeStar(stickers.starTop, STAR_TOP, px, py, 8);
           const cardBottom = scene.t + (cardBelow + about.offsetHeight) / s;
           placeStar(stickers.starBottom, STAR_BOTTOM, px, cardBottom - STAR_BOTTOM / 2, -6);
@@ -2655,7 +2655,9 @@
   // Receipt printer: the paper feeds out of the slot like a thermal printer, in quick
   // line-by-line pushes with short pauses between them, while the printer body hums very
   // slightly. It prints the first time you scroll to it, and again whenever "contact" is clicked.
-  (() => {
+  // (The stickers wait for this to finish setting up, via window.printerReady.)
+  window.printerReady = (async () => {
+    try { await document.fonts.load('bold 33px "Helvetica Now Display"'); } catch (e) {}
     const PRINT = {
       duration: 2600,   // ms for the whole receipt to come out
       lines: 34,        // how many little pushes it feeds in (more = finer, smoother)
@@ -2671,11 +2673,11 @@
     // Its original drawn version is 16.5 units tall per line; NOTE_SIZE is the new size.
     const NOTE_TEXT = 'i\u2019m always open to new opportunities! feel free to contact me anytime and i will try my best to reply as soon as possible.';
     const NOTE_SIZE = 33;                            // twice the original
-    const NOTE_FONT = 'Helvetica, Arial, sans-serif';
+    const NOTE_FONT = '"Helvetica Now Display", Helvetica, Arial, sans-serif';
     function makeNote(width, size) {
       const NS = 'http://www.w3.org/2000/svg';
       const ctx = document.createElement('canvas').getContext('2d');
-      ctx.font = `${size}px ${NOTE_FONT}`;
+      ctx.font = `bold ${size}px ${NOTE_FONT}`;
       const lines = [];
       let line = '';
       for (const word of NOTE_TEXT.split(' ')) {
@@ -2686,7 +2688,7 @@
       lines.push(line);
       const lineH = size * 1.18;
       const t = document.createElementNS(NS, 'text');
-      Object.entries({ 'font-family': NOTE_FONT, 'font-size': size, fill: '#424246' })
+      Object.entries({ 'font-family': NOTE_FONT, 'font-weight': 'bold', 'font-size': size, fill: '#424246' })
         .forEach(([k, v]) => t.setAttribute(k, v));
       lines.forEach((l, i) => {
         const span = document.createElementNS(NS, 'tspan');
@@ -3048,7 +3050,7 @@
       img.addEventListener('pointercancel', up);
     }
 
-    place();
+    (window.printerReady || Promise.resolve()).then(place);
     // re-arrange only when the width changes (phones change height as the address bar hides)
     let timer = 0, lastW = innerWidth;
     addEventListener('resize', () => {
