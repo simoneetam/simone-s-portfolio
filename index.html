@@ -465,8 +465,11 @@
 
     .notepad.is-open .np-scroll {
       opacity: 1;
-      pointer-events: auto;
       transition-delay: 0.5s;       /* appears once the cover has swung out of the way */
+    }
+
+    .notepad.is-ready .np-scroll {
+      pointer-events: auto;         /* clickable only once the cover is fully open */
     }
 
     .np-list {
@@ -1669,6 +1672,17 @@
         const column = Math.max((scene.b - scene.t) * s, cardBelow + about.offsetHeight + hintSize * 2.2);
         oyFinal = Math.max(PHONE_PAD + 50, (H - column) / 2) - scene.t * s;
       }
+      // sparkles, placed in the window (final layout): both the same distance in from the right
+      // edge, the top one that far down from the top, the bottom one that far up from the bottom
+      {
+        const rTop = STAR_TOP / 2 * s, rBot = STAR_BOTTOM / 2 * s;
+        const navBottom = (20 + 42.5) * k;                       // bottom of the nav buttons
+        const D = Math.max(navBottom + 14 + rTop, Math.min(W, H) * 0.08);
+        const toStage = (x, y) => [(x - ox) / s, (y - oyFinal) / s];
+        const [tx, ty] = toStage(W - D, D), [bx, by] = toStage(W - D, H - D);
+        placeStar(stickers.starTop, STAR_TOP, tx, ty, 8);
+        placeStar(stickers.starBottom, STAR_BOTTOM, bx, by, -6);
+      }
       for (const cv of [backCanvas, canvas]) {
         cv.width = Math.round(W * dpr);
         cv.height = Math.round(H * dpr);
@@ -2054,10 +2068,15 @@
       console.error(e);   // falls back to the whole closed notepad as the cover
     }
 
+    let readyTimer = 0;
     const open = () => {
       if (pad.classList.contains('is-open')) return;
       pad.classList.add('is-open');
       pad.setAttribute('aria-expanded', 'true');
+      // the posts can't be clicked until the cover has swung all the way open (1s)
+      const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      clearTimeout(readyTimer);
+      readyTimer = setTimeout(() => pad.classList.add('is-ready'), still ? 0 : 1050);
     };
 
     pad.addEventListener('pointerenter', open);
@@ -2070,7 +2089,8 @@
     // Just scrolling past leaves it however it was (like the receipt printer).
     document.querySelectorAll('a[href="#projects"]').forEach(link => {
       link.addEventListener('click', () => {
-        pad.classList.remove('is-open');
+        clearTimeout(readyTimer);
+        pad.classList.remove('is-open', 'is-ready');
         pad.setAttribute('aria-expanded', 'false');
         pad.dispatchEvent(new Event('notepad-reset'));
       });
