@@ -2667,6 +2667,37 @@
     const body = svg.querySelector('.rp-body');
     let LENGTH = 1355 - 274;                         // how far the paper travels out of the slot
 
+    // The "i'm always open..." note, as real wrapped text so it can be any size.
+    // Its original drawn version is 16.5 units tall per line; NOTE_SIZE is the new size.
+    const NOTE_TEXT = 'i\u2019m always open to new opportunities! feel free to contact me anytime and i will try my best to reply as soon as possible.';
+    const NOTE_SIZE = 33;                            // twice the original
+    const NOTE_FONT = 'Helvetica, Arial, sans-serif';
+    function makeNote(width, size) {
+      const NS = 'http://www.w3.org/2000/svg';
+      const ctx = document.createElement('canvas').getContext('2d');
+      ctx.font = `${size}px ${NOTE_FONT}`;
+      const lines = [];
+      let line = '';
+      for (const word of NOTE_TEXT.split(' ')) {
+        const test = line ? line + ' ' + word : word;
+        if (ctx.measureText(test).width > width && line) { lines.push(line); line = word; }
+        else line = test;
+      }
+      lines.push(line);
+      const lineH = size * 1.18;
+      const t = document.createElementNS(NS, 'text');
+      Object.entries({ 'font-family': NOTE_FONT, 'font-size': size, fill: '#424246' })
+        .forEach(([k, v]) => t.setAttribute(k, v));
+      lines.forEach((l, i) => {
+        const span = document.createElementNS(NS, 'tspan');
+        span.setAttribute('x', 0);
+        span.setAttribute('y', size * 0.8 + i * lineH);
+        span.textContent = l;
+        t.appendChild(span);
+      });
+      return { el: t, height: lines.length * lineH };
+    }
+
     // ---- phones: stand the printer up so the receipt feeds downward, and re-stack the printed
     // lines one under another (email, linkedin, resume, instagram, github, line, note, barcode).
     // The artwork is turned 90 degrees clockwise; every printed word is turned back upright.
@@ -2696,7 +2727,7 @@
       // place items so they read upright at (sx, sy) on the turned receipt, at scale sc
       const placeAt = (els, b, sx, sy, sc = 1) => els.forEach(el => el.setAttribute('transform',
         `matrix(0 ${-sc} ${sc} 0 ${sy - sc * b.y} ${1011 - sx + sc * b.x})`));
-      const BAR = 2.5;                                               // barcode size (x the original)
+      const BAR = 1.25;                                              // barcode size (x the original)
       const links = [...paper.querySelectorAll('.rp-link')];
       const lines = [...left, ...right];                              // email, linkedin, resume, instagram, github
       const lineBox = lines.map(w => {
@@ -2714,9 +2745,11 @@
       const g = Math.min(1, MAX_W / widest);
       const contentW = widest * g;
       const L = (PAPER_L + PAPER_R) / 2 - contentW / 2, R = L + contentW;
-      const nsc = Math.min(g, contentW / nb.w);
+      note.forEach(w => w.el.remove());
+      const noteText = makeNote(contentW, NOTE_SIZE * g);
+      print.appendChild(noteText.el);
       const PITCH = 52 * g;
-      const contentH = hb.h * g + 36 * g + PITCH * lineBox.length + 6 + 30 + nb.h * nsc + 34 + bb.h * BAR * g;
+      const contentH = hb.h * g + 36 * g + PITCH * lineBox.length + 6 + 30 + noteText.height + 34 + bb.h * BAR * g;
       // the paper runs from the slot (274) to `end`; the text sits in the middle of it
       const end = Math.max(1150, 274 + contentH + 160);
       let y = 274 + (end - 274 - contentH) / 2;
@@ -2736,8 +2769,8 @@
       print.appendChild(rule);
       y += 30;
       // the note, then the (bigger) barcode, centred
-      placeAt(note.map(w => w.el), nb, L, y, nsc);
-      y += nb.h * nsc + 34;
+      placeAt([noteText.el], { x: 0, y: 0 }, L, y);
+      y += noteText.height + 34;
       placeAt(barcode.map(w => w.el), bb, (L + R) / 2 - bb.w * BAR * g / 2, y, BAR * g);
       // shorten the paper to end just after the barcode (keeping its torn edge)
       paper.querySelector('path').setAttribute('transform', `translate(274 0) scale(${(end - 274) / (1355 - 274)} 1) translate(-274 0)`);
@@ -2769,15 +2802,20 @@
       });
       if (bars.length) {
         // barcode 2.5x, kept to the right edge and just under the line
-        const B = span(bars), BAR = 2.5, top = 600;
+        const B = span(bars), BAR = 1.25, top = 604;
         bars.forEach(w => w.el.setAttribute('transform',
           `translate(${B.x1 - BAR * B.x1} ${top - BAR * B.y0}) scale(${BAR})`));
         const barLeft = B.x1 - BAR * (B.x1 - B.x0);
         // the note shrinks a little if it would run into the barcode
         if (note.length) {
-          const N = span(note), room = barLeft - 28 - N.x0;
-          const k = Math.min(1, room / (N.x1 - N.x0));
-          note.forEach(w => w.el.setAttribute('transform', `translate(${N.x0 * (1 - k)} ${N.y0 * (1 - k)}) scale(${k})`));
+          // the note fills the space left of the barcode, down to the bottom of the paper,
+          // at twice its old size (a little less if it wouldn't fit)
+          const N = span(note), room = barLeft - 32 - N.x0, top = 602, bottom = 740;
+          note.forEach(w => w.el.remove());
+          let size = NOTE_SIZE, made;
+          while ((made = makeNote(room, size)).height > bottom - top && size > 12) size -= 1;
+          made.el.setAttribute('transform', `translate(${N.x0} ${top})`);
+          print.appendChild(made.el);
         }
       }
       // shift all the printing (and its links) so the space either side is the same
