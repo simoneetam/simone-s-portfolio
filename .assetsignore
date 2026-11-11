@@ -1,0 +1,8 @@
+# files in this folder that shouldn't be published to the website
+.git
+.gitignore
+.assetsignore
+wrangler.jsonc
+previews
+.claude
+.wrangler

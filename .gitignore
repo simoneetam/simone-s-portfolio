@@ -3,3 +3,6 @@ previews/
 
 # local editor / Claude settings
 .claude/
+
+# Cloudflare Wrangler temporary files
+.wrangler/

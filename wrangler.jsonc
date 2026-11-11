@@ -1,0 +1,8 @@
+// Cloudflare Workers settings: serve this folder as a static website.
+{
+  "name": "simone-s-portfolio",
+  "compatibility_date": "2026-06-01",
+  "assets": {
+    "directory": "./"
+  }
+}
