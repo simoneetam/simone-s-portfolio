@@ -848,7 +848,7 @@
       .projects-title     { left: calc(4 * var(--u));  top: var(--pt); }
       .projects .pear     { left: calc(2 * var(--u));  top: calc(var(--pt) + 14 * var(--u)); width: calc(24 * var(--u)); }
       .projects .orange   { left: calc(27 * var(--u)); top: calc(var(--pt) + 11 * var(--u)); width: calc(24 * var(--u)); }
-      .projects .blueberry-1 { left: calc(51 * var(--u)); top: calc(var(--pt) + 3 * var(--u));  width: calc(9 * var(--u)); }
+      .projects .blueberry-1 { left: calc(47 * var(--u)); top: calc(var(--pt) + 3 * var(--u));  width: calc(9 * var(--u)); }
       .projects .blueberry-2 { left: calc(28 * var(--u)); top: calc(var(--pt) + 37 * var(--u)); width: calc(8 * var(--u)); }
       .projects .strawberry  { left: calc(40 * var(--u)); top: calc(var(--pt) + 34 * var(--u)); width: calc(11 * var(--u)); }
       .notepad            { left: calc(13 * var(--u)); top: calc(var(--pt) + 56 * var(--u)); width: calc(36 * var(--u)); }
@@ -861,6 +861,22 @@
       .cg-msg { font-size: 23px; padding: 12px 28px 13px; }
       .cg-msg small { font-size: 11px; }
       .cg-score { font-size: 13px; left: 10px; top: 10px; }
+    }
+
+    /* phone bio card: text, then the photo underneath (sizes in real px) */
+    .about.is-phone {
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px 16px 16px;
+      border-radius: 18px;
+      box-sizing: border-box;
+    }
+    .about.is-phone .about-text { width: auto; }
+    .about.is-phone .about-photo {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 4 / 3;
+      border-radius: 14px;
     }
 
     /* touch screens: fruit show their project on the first tap */
@@ -1503,13 +1519,21 @@
       const cardHome = phone ? heroEl : stage;
       if (about.parentNode !== cardHome) { cardHome.appendChild(about); cardHome.appendChild(scrollHint); }
       const PHONE_PAD = 16;
-      const cardTarget = phone ? (hero.clientWidth || innerWidth) - PHONE_PAD * 2 : BAND.w;
-      let cardFs = phone ? 16 : 40;
-      for (let i = 0; i < 3; i++) cardFs *= cardTarget / sizeCard(cardFs);
-      sizeCard(cardFs);
+      about.classList.toggle('is-phone', phone);
+      aboutPhoto.src = phone ? 'simone-wide.jpg' : 'simone.jpg';
+      if (phone) {
+        // real-size text; the width is set once the scene's scale is known (as wide as the peel)
+        about.style.fontSize = '15px';
+        aboutPhoto.style.width = aboutPhoto.style.height = '';
+      } else {
+        let cardFs = 40;
+        for (let i = 0; i < 3; i++) cardFs *= BAND.w / sizeCard(cardFs);
+        sizeCard(cardFs);
+        about.style.width = '';
+      }
       // lined up with the peel, just below its lowest point
       // (and below the resting apple too, if the card would reach under it)
-      const cardL = BAND.x, cardR = BAND.x + about.offsetWidth;
+      const cardL = BAND.x, cardR = BAND.x + (phone ? BAND.w : about.offsetWidth);
       let below = 0;
       for (let x = cardL; x <= cardR; x += 4) {
         if (x < BAND.x || x > BAND.x + BAND.w) continue;
@@ -1627,9 +1651,9 @@
       // It's on the stage, so it grows and shrinks with the window; 0.8x the bio text size.
       const hintSize = 0.8 * parseFloat(getComputedStyle(aboutText).fontSize);
       scrollHint.style.fontSize = hintSize + 'px';
-      scrollHint.style.left = (phone ? PHONE_PAD : cardL) + 'px';
+      scrollHint.style.left = cardL + 'px';
       scrollHint.style.top = cardT + about.offsetHeight + hintSize * 0.9 + 'px';
-      if (phone) about.style.left = PHONE_PAD + 'px';
+      if (phone) about.style.width = BAND.w * s + 'px';      // as wide as the peel on screen
 
       const dpr = Math.min(2, devicePixelRatio || 1);
       const d = s * dpr;                           // device pixels per stage unit
@@ -1638,11 +1662,11 @@
       // on their own; once the bio card arrives everything glides up so the whole lot is centred
       const oyIntro = H / 2 - (box.t + heroBottom) / 2 * s;
       let oyFinal = H / 2 - (box.t + box.b) / 2 * s;
-      // phone: scene, then the card 20px below it, then the hint; the whole column centred
-      const PHONE_GAP = 20;
-      const cardBelow = (scene.b - scene.t) * s + PHONE_GAP;               // card top, from the scene's top
+      // phone: the card sits under the peel (left), beside the worm; the whole lot centred
+      const cardBelow = (cardT - scene.t) * s;                              // card top, from the scene's top
+      const cardLeft = cardL;
       if (phone) {
-        const column = cardBelow + about.offsetHeight + hintSize * 2.2;
+        const column = Math.max((scene.b - scene.t) * s, cardBelow + about.offsetHeight + hintSize * 2.2);
         oyFinal = Math.max(PHONE_PAD + 50, (H - column) / 2) - scene.t * s;
       }
       for (const cv of [backCanvas, canvas]) {
@@ -1713,7 +1737,7 @@
       const actx = appleCanvas.getContext('2d');
       const appleImg = actx.createImageData(OW, OH);
 
-      L = { phone, sceneTop: scene.t, cardBelow, hintGap: hintSize * 0.9, s, d, dpr, ox, oyIntro, oyFinal, band, peeler, top, OW, OH, alpha, lon0, row, light, shadeA, cavA, cav,
+      L = { phone, sceneTop: scene.t, cardBelow, cardLeft, hintGap: hintSize * 0.9, s, d, dpr, ox, oyIntro, oyFinal, band, peeler, top, OW, OH, alpha, lon0, row, light, shadeA, cavA, cav,
             appleCanvas, actx, appleImg, out: new Uint32Array(appleImg.data.buffer) };
     }
 
@@ -1777,6 +1801,7 @@
       if (L.phone) {                     // the card and hint ride along below the scene
         const cardTop = oy + L.sceneTop * s + L.cardBelow;
         about.style.top = cardTop + 'px';
+        about.style.left = scrollHint.style.left = ox + L.cardLeft * s + 'px';
         scrollHint.style.top = cardTop + about.offsetHeight + L.hintGap + 'px';
       }
       for (const c of [bctx, ctx]) {
@@ -2591,7 +2616,89 @@
     const svg = document.querySelector('.receipt-printer');
     const paper = svg.querySelector('.rp-paper');
     const body = svg.querySelector('.rp-body');
-    const LENGTH = 1355 - 274;                       // how far the paper travels out of the slot
+    let LENGTH = 1355 - 274;                         // how far the paper travels out of the slot
+
+    // ---- phones: stand the printer up so the receipt feeds downward, and re-stack the printed
+    // lines one under another (email, linkedin, resume, instagram, github, line, note, barcode).
+    // The artwork is turned 90 degrees clockwise; every printed word is turned back upright.
+    const VERTICAL = matchMedia('(max-width: 760px) and (orientation: portrait)').matches;
+    if (VERTICAL) {
+      const NS = 'http://www.w3.org/2000/svg';
+      const rot = document.createElementNS(NS, 'g');                 // turns the artwork clockwise
+      rot.setAttribute('transform', 'matrix(0 1 -1 0 1011 0)');
+      [...svg.children].filter(el => el.localName !== 'defs').forEach(el => rot.appendChild(el));
+      svg.appendChild(rot);
+
+      const print = paper.querySelector('.rp-print');
+      const words = [...print.querySelectorAll('path')].map(el => ({ el, b: el.getBBox() }));
+      words.forEach(w => { w.cx = w.b.x + w.b.width / 2; w.cy = w.b.y + w.b.height / 2; });
+      const pick = test => words.filter(test);
+      const heading = pick(w => w.cy < 400 && w.cx < 900);
+      const star = pick(w => w.cy < 400 && w.cx >= 900);
+      const left = pick(w => w.cy >= 400 && w.cy < 570 && w.cx < 900).sort((a, b) => a.cy - b.cy);
+      const right = pick(w => w.cy >= 400 && w.cy < 570 && w.cx >= 900).sort((a, b) => a.cy - b.cy);
+      const note = pick(w => w.cy >= 590 && w.cx < 1000);
+      const barcode = pick(w => w.cy >= 590 && w.cx >= 1000);
+      const box = list => {
+        const x0 = Math.min(...list.map(w => w.b.x)), y0 = Math.min(...list.map(w => w.b.y));
+        const x1 = Math.max(...list.map(w => w.b.x + w.b.width)), y1 = Math.max(...list.map(w => w.b.y + w.b.height));
+        return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+      };
+      // place items so they read upright at (sx, sy) on the turned receipt, at scale sc
+      const placeAt = (els, b, sx, sy, sc = 1) => els.forEach(el => el.setAttribute('transform',
+        `matrix(0 ${-sc} ${sc} 0 ${sy - sc * b.y} ${1011 - sx + sc * b.x})`));
+      const L = 298, R = 714;                                        // the receipt's margins (across)
+      let y = 560;                                                   // below the printer, mostly
+      const hb = box(heading);
+      placeAt(heading.map(w => w.el), hb, L, y);
+      if (star.length) { const sb = box(star); placeAt(star.map(w => w.el), sb, R - sb.w, y + (hb.h - sb.h) / 2); }
+      y += hb.h + 36;
+      // the five links, one per line, each with its clickable area and underline
+      const links = [...paper.querySelectorAll('.rp-link')];
+      const lines = [...left, ...right];                              // email, linkedin, resume, instagram, github
+      for (const w of lines) {
+        const link = links.find(a => {
+          const r = a.querySelector('rect').getBBox();
+          return Math.abs(r.x + r.width / 2 - w.cx) < r.width / 2 + 10 && Math.abs(r.y + r.height / 2 - w.cy) < 30;
+        });
+        const b = link ? box([w, { b: link.querySelector('rect').getBBox() }]) : w.b;
+        placeAt(link ? [w.el, link] : [w.el], b, L, y);
+        y += 52;
+      }
+      // the dividing line
+      print.querySelector('line').remove();
+      y += 6;
+      const rule = document.createElementNS(NS, 'line');
+      Object.entries({ x1: y, y1: 1011 - L, x2: y, y2: 1011 - R, 'stroke-width': 2, stroke: '#1E1E1E' })
+        .forEach(([k, v]) => rule.setAttribute(k, v));
+      print.appendChild(rule);
+      y += 30;
+      // the note, shrunk to fit the narrower receipt, then the barcode
+      const nb = box(note), nsc = Math.min(1, (R - L) / nb.w);
+      placeAt(note.map(w => w.el), nb, L, y, nsc);
+      y += nb.h * nsc + 34;
+      const bb = box(barcode);
+      placeAt(barcode.map(w => w.el), bb, (L + R) / 2 - bb.w / 2, y);
+      y += bb.h + 60;
+      // shorten the paper to end just after the barcode (keeping its torn edge)
+      const end = Math.max(y, 1150);
+      paper.querySelector('path').setAttribute('transform', `translate(274 0) scale(${(end - 274) / (1355 - 274)} 1) translate(-274 0)`);
+      LENGTH = end - 274;
+      svg.setAttribute('viewBox', `0 0 1011 ${end}`);
+      svg.classList.add('is-vertical');
+      svg.dataset.paperEnd = end;
+      // size and centre it in the section
+      const place = () => {
+        const h = Math.min(innerHeight * 0.84, innerWidth * 0.86 * end / 1011), w = h * 1011 / end;
+        Object.assign(svg.style, { width: w + 'px', height: h + 'px',
+          left: (contactSec.clientWidth - w) / 2 + 'px', top: (innerHeight - h) / 2 + 'px' });
+      };
+      const contactSec = document.getElementById('contact');
+      place();
+      addEventListener('resize', place);
+    }
+    // switching between the phone and laptop layouts (e.g. rotating a tablet): start fresh
+    matchMedia('(max-width: 760px) and (orientation: portrait)').addEventListener('change', () => location.reload());
 
     const smooth = x => x * x * (3 - 2 * x);
     const easeInOut = x => (x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2);
@@ -2704,15 +2811,17 @@
       // areas to keep clear, in section coordinates
       const sec = contact.getBoundingClientRect();
       const pr = printer.getBoundingClientRect();
-      const k = pr.width / 1355;
+      const vertical = printer.classList.contains('is-vertical');
+      const k = pr.width / (vertical ? 1011 : 1355);
       const art = (x0, y0, x1, y1) => ({
         l: pr.left - sec.left + x0 * k - pad, t: pr.top - sec.top + y0 * k - pad,
         r: pr.left - sec.left + x1 * k + pad, b: pr.top - sec.top + y1 * k + pad,
       });
       const nr = nav.getBoundingClientRect();
       const keepClear = [
-        art(0, 0, 909, 1011),                          // printer
-        art(274, 261, 1355, 749),                      // receipt, fully printed
+        ...(vertical
+          ? [art(0, 0, 1011, 909), art(262, 274, 750, +printer.dataset.paperEnd)]   // upright printer, receipt below
+          : [art(0, 0, 909, 1011), art(274, 261, 1355, 749)]),                       // printer, receipt to the right
         { l: nr.left - sec.left - pad, t: -1e4, r: 1e4, b: nr.bottom + pad },   // nav buttons
       ];
 
